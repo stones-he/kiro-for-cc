@@ -1,0 +1,314 @@
+{
+  "name": "kiro-for-cc",
+  "displayName": "Kiro for Claude Code",
+  "description": "Spec-driven development with Claude Code - inspired by Kiro",
+  "version": "0.1.0",
+  "publisher": "notdp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/notdp/kiro-for-cc"
+  },
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "AI",
+    "Programming Languages",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kfc",
+          "title": "Kiro for CC",
+          "icon": "./icons/kiro.svg"
+        }
+      ]
+    },
+    "views": {
+      "kfc": [
+        {
+          "id": "kfc.views.specExplorer",
+          "name": "Specs",
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.specs.visible"
+        },
+        {
+          "id": "kfc.views.steeringExplorer",
+          "name": "Agent Steering",
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.steering.visible"
+        },
+        {
+          "id": "kfc.views.mcpServerStatus",
+          "name": "MCP Servers",
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.mcp.visible"
+        },
+        {
+          "id": "kfc.views.hooksStatus",
+          "name": "Agent Hooks",
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.hooks.visible"
+        },
+        {
+          "id": "kfc.views.overview",
+          "name": "Settings",
+          "visibility": "collapsed",
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.settings.visible"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "kfc.views.overview",
+        "contents": "Configure Kiro for Claude Code\n\n[$(gear) Open Settings](command:kfc.settings.open)\n[$(question) Help](command:kfc.help.open)"
+      },
+      {
+        "view": "kfc.views.specExplorer",
+        "contents": "Build complex features with structured planning\n\n[$(plus) Create New Spec](command:kfc.spec.create)"
+      },
+      {
+        "view": "kfc.views.hooksStatus",
+        "contents": "Automate repetitive tasks with smart triggers"
+      },
+      {
+        "view": "kfc.views.steeringExplorer",
+        "contents": "No steering configuration found.\n\n[$(root-folder) Create Project CLAUDE.md](command:kfc.steering.createProjectClaude)"
+      },
+      {
+        "view": "kfc.views.mcpServerStatus",
+        "contents": "Connect to external tools and services\nUse 'claude mcp add' to configure servers"
+      }
+    ],
+    "commands": [
+      {
+        "command": "kfc.spec.create",
+        "title": "Create New Spec",
+        "category": "Kiro",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "kfc.spec.refresh",
+        "title": "Refine Spec",
+        "category": "Kiro",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "kfc.steering.create",
+        "title": "Create Custom Steering",
+        "category": "Kiro",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "kfc.steering.generateInitial",
+        "title": "Init Steering",
+        "category": "Kiro",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "kfc.steering.refine",
+        "title": "Refine Steering",
+        "category": "Kiro",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "kfc.claude.openChat",
+        "title": "Open Claude Code",
+        "category": "Kiro",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "kfc.spec.implementTask",
+        "title": "Implement Task",
+        "category": "Kiro",
+        "icon": "$(play)"
+      },
+      {
+        "command": "kfc.spec.delete",
+        "title": "Delete Spec",
+        "category": "Kiro",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "kfc.steering.delete",
+        "title": "Delete Steering",
+        "category": "Kiro",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "kfc.steering.createGlobalClaude",
+        "title": "Create Global CLAUDE.md",
+        "category": "Kiro",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "kfc.steering.createProjectClaude",
+        "title": "Create Project CLAUDE.md",
+        "category": "Kiro",
+        "icon": "$(root-folder)"
+      },
+      {
+        "command": "kfc.hooks.refresh",
+        "title": "Refresh Hooks",
+        "category": "Kiro",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "kfc.mcp.refresh",
+        "title": "Refresh MCP Status",
+        "category": "Kiro",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "kfc.settings.open",
+        "title": "Kiro Settings",
+        "category": "Kiro",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "kfc.help.open",
+        "title": "Kiro Help",
+        "category": "Kiro",
+        "icon": "$(question)"
+      },
+      {
+        "command": "kfc.menu.open",
+        "title": "Kiro Menu",
+        "category": "Kiro",
+        "icon": "$(ellipsis)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "kfc.menu.open",
+          "when": "view == kfc.views.overview",
+          "group": "navigation"
+        },
+        {
+          "command": "kfc.spec.create",
+          "when": "view == kfc.views.specExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "kfc.steering.generateInitial",
+          "when": "view == kfc.views.steeringExplorer",
+          "group": "navigation@2"
+        },
+        {
+          "command": "kfc.steering.create",
+          "when": "view == kfc.views.steeringExplorer",
+          "group": "navigation@1"
+        },
+        {
+          "command": "kfc.mcp.refresh",
+          "when": "view == kfc.views.mcpServerStatus",
+          "group": "navigation"
+        },
+        {
+          "command": "kfc.hooks.refresh",
+          "when": "view == kfc.views.hooksStatus",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "kfc.spec.refresh",
+          "when": "view == kfc.views.specExplorer && viewItem =~ /spec-document/",
+          "group": "inline"
+        },
+        {
+          "command": "kfc.spec.delete",
+          "when": "view == kfc.views.specExplorer && viewItem == spec",
+          "group": "7_modification"
+        },
+        {
+          "command": "kfc.steering.refine",
+          "when": "view == kfc.views.steeringExplorer && viewItem == steering-document",
+          "group": "inline"
+        },
+        {
+          "command": "kfc.steering.delete",
+          "when": "view == kfc.views.steeringExplorer && viewItem == steering-document",
+          "group": "7_modification"
+        },
+        {
+          "command": "kfc.spec.implementTask",
+          "when": "view == kfc.views.specExplorer && viewItem == spec-document-tasks",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "kfc.spec.create"
+        },
+        {
+          "command": "kfc.steering.create",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "kfc.claude.openChat"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Kiro for Claude Code",
+      "properties": {
+        "kfc.claudePath": {
+          "type": "string",
+          "default": "claude",
+          "description": "Path to Claude Code CLI executable"
+        },
+        "kfc.autoRefreshSpecs": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh specs when requirements are saved"
+        },
+        "kfc.showWelcomeMessage": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show welcome message on startup"
+        },
+        "kfc.views.specs.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Specs view"
+        },
+        "kfc.views.hooks.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Agent Hooks view"
+        },
+        "kfc.views.steering.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Agent Steering view"
+        },
+        "kfc.views.mcp.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show MCP Servers view"
+        },
+        "kfc.views.settings.visible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show Settings view"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.84.0",
+    "@types/node": "^20.x",
+    "typescript": "^5.3.0",
+    "vsce": "^2.15.0"
+  }
+}

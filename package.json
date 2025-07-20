@@ -3,7 +3,7 @@
   "displayName": "Kiro for Claude Code",
   "description": "Spec-driven development with Claude Code - inspired by Kiro",
   "version": "0.1.0",
-  "publisher": "notdp",
+  "publisher": "heisebaiyun",
   "repository": {
     "type": "git",
     "url": "https://github.com/notdp/kiro-for-cc"

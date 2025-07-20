@@ -40,17 +40,28 @@ A VSCode extension that brings spec-driven development to Claude Code. Manage yo
 
 ## Installation
 
-### From VSCode Marketplace
+### From Extension Marketplace
 
+**VSCode users:**
 1. Open VSCode
 2. Go to Extensions (Cmd+Shift+X)
 3. Search for "Kiro for Claude Code"
 4. Click Install
 
-Or install via command line:
-
+Or via command line:
 ```bash
 code --install-extension heisebaiyun.kiro-for-cc
+```
+
+**Cursor users:**
+The extension is available on OpenVSX Registry. In Cursor:
+1. Go to Extensions
+2. Search for "Kiro for Claude Code"
+3. Click Install
+
+Or via command line:
+```bash
+cursor --install-extension heisebaiyun.kiro-for-cc
 ```
 
 ### From VSIX file

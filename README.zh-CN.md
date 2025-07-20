@@ -38,17 +38,28 @@
 
 ## 安装
 
-### 从 VSCode 商店安装
+### 从扩展商店安装
 
+**VSCode 用户：**
 1. 打开 VSCode
 2. 进入扩展页面 (Cmd+Shift+X)
 3. 搜索 "Kiro for Claude Code"
 4. 点击安装
 
-或使用命令行安装：
-
+或使用命令行：
 ```bash
 code --install-extension heisebaiyun.kiro-for-cc
+```
+
+**Cursor 用户：**
+该扩展已发布到 OpenVSX Registry。在 Cursor 中：
+1. 进入扩展页面
+2. 搜索 "Kiro for Claude Code"
+3. 点击安装
+
+或使用命令行：
+```bash
+cursor --install-extension heisebaiyun.kiro-for-cc
 ```
 
 ### 从 VSIX 文件安装

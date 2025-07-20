@@ -1,5 +1,8 @@
 # Kiro for Claude Code
 
+[![Visual Studio Marketplace](https://img.shields.io/vscode-marketplace/v/heisebaiyun.kiro-for-cc.svg)](https://marketplace.visualstudio.com/items?itemName=heisebaiyun.kiro-for-cc)
+[![Downloads](https://img.shields.io/vscode-marketplace/d/heisebaiyun.kiro-for-cc.svg)](https://marketplace.visualstudio.com/items?itemName=heisebaiyun.kiro-for-cc)
+
 [中文版](./README.zh-CN.md)
 
 A VSCode extension that brings spec-driven development to Claude Code. Manage your specs and steering documents visually while leveraging Claude Code's powerful AI capabilities.
@@ -17,35 +20,52 @@ A VSCode extension that brings spec-driven development to Claude Code. Manage yo
 - **CLAUDE.md**: Browse and edit global/project-specific guidelines
 - **Generated Docs**: Product, tech, and structure steering documents
 
-### MCP Management
+### 🔌 MCP Management
 
 - **MCP Servers**: View configured global and workspace MCP servers
 
-### HOOKS Management
+### 🪝 HOOKS Management
 
 - **Agent Hooks**: View Claude Code hooks
 
-### Others
+### ⚙️ Others
 
 - **Settings Management**: Centralized configuration
 
+## Screenshot
+
+![Kiro for Claude Code Extension](./image.png)
+
+*The extension provides a comprehensive sidebar interface with organized views for specs, steering documents, MCP servers, and hooks management. All your Claude Code enhancement tools in one place.*
+
 ## Installation
 
-1. Install the extension from VSIX:
+### From VSCode Marketplace
 
-vscode:
+1. Open VSCode
+2. Go to Extensions (Cmd+Shift+X)
+3. Search for "Kiro for Claude Code"
+4. Click Install
 
-  ```bash
-  code --install-extension kiro-for-cc-0.1.0.vsix
-  ```
-
-cursor:
+Or install via command line:
 
 ```bash
+code --install-extension heisebaiyun.kiro-for-cc
+```
+
+### From VSIX file
+
+```bash
+# VSCode
+code --install-extension kiro-for-cc-0.1.0.vsix
+
+# Cursor
 cursor --install-extension kiro-for-cc-0.1.0.vsix
 ```
 
-2. Ensure Claude Code is installed and configured
+### Prerequisites
+
+Ensure Claude Code is installed and configured
 
 ## Usage
 

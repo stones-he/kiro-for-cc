@@ -1,5 +1,8 @@
 # Kiro for Claude Code
 
+[![Visual Studio Marketplace](https://img.shields.io/vscode-marketplace/v/heisebaiyun.kiro-for-cc.svg)](https://marketplace.visualstudio.com/items?itemName=heisebaiyun.kiro-for-cc)
+[![Downloads](https://img.shields.io/vscode-marketplace/d/heisebaiyun.kiro-for-cc.svg)](https://marketplace.visualstudio.com/items?itemName=heisebaiyun.kiro-for-cc)
+
 为 Claude Code 带来规范驱动开发的 VSCode 扩展。在充分利用 Claude Code 强大 AI 能力的同时，可视化管理你的规范文档和指导文档。
 
 ## 功能特性
@@ -15,35 +18,52 @@
 - **CLAUDE.md**：浏览以及编辑 全局/项目特定的指导原则
 - **生成文档**：产品、技术和结构指导文档
 
-### MCP 管理
+### 🔌 MCP 管理
 
 - **MCP 服务器**：查看已配置的全局以及工作区 MCP 服务器
 
-### HOOKS 管理
+### 🪝 HOOKS 管理
 
 - **代理钩子**：查看 Claude Code 钩子
 
-### 其他
+### ⚙️ 其他
 
 - **设置管理**：集中化配置管理
 
+## 界面截图
+
+![Kiro for Claude Code 扩展界面](./image.png)
+
+*该扩展提供了一个综合性的侧边栏界面，包含规范、引导文档、MCP 服务器和钩子管理等有序组织的视图。所有 Claude Code 增强工具都集中在一个地方。*
+
 ## 安装
 
-1. 从 VSIX 文件安装扩展：
+### 从 VSCode 商店安装
 
-vscode:
+1. 打开 VSCode
+2. 进入扩展页面 (Cmd+Shift+X)
+3. 搜索 "Kiro for Claude Code"
+4. 点击安装
 
-  ```bash
-  code --install-extension kiro-for-cc-0.1.0.vsix
-  ```
-
-cursor:
+或使用命令行安装：
 
 ```bash
+code --install-extension heisebaiyun.kiro-for-cc
+```
+
+### 从 VSIX 文件安装
+
+```bash
+# VSCode
+code --install-extension kiro-for-cc-0.1.0.vsix
+
+# Cursor
 cursor --install-extension kiro-for-cc-0.1.0.vsix
 ```
 
-2. 确保 Claude Code 已安装并配置
+### 前置条件
+
+确保 Claude Code 已安装并配置
 
 ## 使用方法
 

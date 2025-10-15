@@ -16,6 +16,10 @@ variables:
     type: string
     required: true
     description: Base path for specs directory
+  modularDesignEnabled:
+    type: string
+    required: true
+    description: Whether modular design is enabled (true/false)
 ---
 
 
@@ -125,9 +129,34 @@ This section should have EARS requirements
 After the user approves the Requirements, you should develop a comprehensive design document based on the feature requirements, conducting necessary research during the design process.
 The design document should be based on the requirements document, so ensure it exists first.
 
-**Constraints:**
+**IMPORTANT: Modular Design Configuration**
 
-- The model MUST create a '{{specBasePath}}/{feature_name}/design.md' file if it doesn't already exist
+The modular design feature setting is: `{{modularDesignEnabled}}`
+
+**IF modularDesignEnabled is "true":**
+- The model MUST use the ModularDesignManager to generate modular design files instead of a single design.md file
+- The model MUST read the requirements document first
+- The model MUST call the modular design generation using VSCode commands or by directly interacting with the file system to create:
+  - design-frontend.md (for frontend/web design)
+  - design-mobile.md (for mobile design, if applicable)
+  - design-server-api.md (for API design)
+  - design-server-logic.md (for business logic)
+  - design-server-database.md (for database models)
+  - design-testing.md (for test strategies)
+- The model MUST only generate modules that are relevant to the requirements (e.g., skip mobile design if not needed)
+- The model MUST ensure each module focuses on its specific domain with appropriate depth
+- The model MUST create cross-references between related modules
+- After generating all applicable design modules, the model MUST:
+  1. Use TodoWrite to mark the "Design Document" task as completed
+  2. Create a new pending task "Review Design Modules"
+  3. Simply ask the user: "I've generated the design modules. Do they look good? If so, we can move on to the implementation plan."
+
+**IF modularDesignEnabled is "false" OR NOT SET:**
+- The model MUST create a single '{{specBasePath}}/{feature_name}/design.md' file if it doesn't already exist
+- Follow the legacy design process as described below
+
+**Constraints (applies to both modular and legacy design):**
+
 - The model MUST identify areas where research is needed based on the feature requirements
 - The model MUST conduct research and build up context in the conversation thread
 - The model SHOULD use parallel tool calls when conducting research:
@@ -137,9 +166,8 @@ The design document should be based on the requirements document, so ensure it e
 - The model SHOULD NOT create separate research files, but instead use the research as context for the design and implementation plan
 - The model MUST summarize key findings that will inform the feature design
 - The model SHOULD cite sources and include relevant links in the conversation
-- The model MUST create a detailed design document at '{{specBasePath}}/{feature_name}/design.md'
 - The model MUST incorporate research findings directly into the design process
-- The model MUST include the following sections in the design document:
+- The model MUST include the following sections in the design document(s):
 
 - Overview
 - Architecture
@@ -152,16 +180,16 @@ The design document should be based on the requirements document, so ensure it e
 - The model MUST ensure the design addresses all feature requirements identified during the clarification process
 - The model SHOULD highlight design decisions and their rationales
 - The model MAY ask the user for input on specific technical decisions during the design process
-- After updating the design document, the model MUST:
+- After updating the design document(s), the model MUST:
   1. Use TodoWrite to mark the "Design Document" task as completed
-  2. Create a new pending task "Review Design Document"
+  2. Create a new pending task "Review Design Document" (or "Review Design Modules" for modular)
   3. Simply ask the user: "Does the design look good? If so, we can move on to the implementation plan."
-- The model MUST make modifications to the design document if the user requests changes or does not explicitly approve
-- The model MUST ask for explicit approval after every iteration of edits to the design document
+- The model MUST make modifications to the design document(s) if the user requests changes or does not explicitly approve
+- The model MUST ask for explicit approval after every iteration of edits to the design document(s)
 - The model MUST NOT proceed to the implementation plan until receiving clear approval (such as "yes", "approved", "looks good", etc.)
 - The model MUST continue the feedback-revision cycle until explicit approval is received
 - Upon receiving approval, the model MUST use TodoWrite to mark "Review Design Document" task as completed
-- The model MUST incorporate all user feedback into the design document before proceeding
+- The model MUST incorporate all user feedback into the design document(s) before proceeding
 - The model MUST offer to return to feature requirements clarification if gaps are identified during design
 
 ### 3. Create Task List

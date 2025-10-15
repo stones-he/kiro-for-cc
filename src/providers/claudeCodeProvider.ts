@@ -32,7 +32,8 @@ export class ClaudeCodeProvider {
         await vscode.workspace.fs.createDirectory(this.context.globalStorageUri);
 
         const tempFile = path.join(tempDir, `${prefix}-${Date.now()}.md`);
-        await fs.promises.writeFile(tempFile, content);
+        // Explicitly specify UTF-8 encoding to avoid encoding issues with non-ASCII characters
+        await fs.promises.writeFile(tempFile, content, { encoding: 'utf8' });
 
         return tempFile;
     }
@@ -42,10 +43,10 @@ export class ClaudeCodeProvider {
      */
     private buildClaudeCommand(promptFilePath: string, permissionMode: string = 'bypassPermissions'): string {
         if (process.platform === 'win32') {
-            // On Windows, use PowerShell-compatible syntax
-            // Escape backslashes and use Get-Content
+            // On Windows, use PowerShell-compatible syntax with UTF-8 encoding
+            // Escape backslashes and use Get-Content with -Encoding UTF8
             const escapedPath = promptFilePath.replace(/\\/g, '\\\\');
-            return `claude --permission-mode ${permissionMode} (Get-Content -Raw "${escapedPath}")`;
+            return `claude --permission-mode ${permissionMode} (Get-Content -Raw -Encoding UTF8 "${escapedPath}")`;
         } else {
             // On Unix-like systems (Linux, macOS), use standard shell syntax
             return `claude --permission-mode ${permissionMode} "$(cat "${promptFilePath}")"`;

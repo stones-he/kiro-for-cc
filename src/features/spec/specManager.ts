@@ -50,10 +50,19 @@ export class SpecManager {
         // Let Claude handle everything - directory creation, naming, and file creation
         // Load and render the spec creation prompt
         const specBasePath = await this.getSpecBasePath();
+
+        // Check if modular design is enabled
+        const settings = await this.configManager.loadSettings();
+        const modularDesignConfig = this.configManager.getModularDesignConfig();
+        const modularDesignEnabled = modularDesignConfig.enabled;
+
+        this.outputChannel.appendLine(`[SpecManager] Modular design enabled: ${modularDesignEnabled}`);
+
         const prompt = this.promptLoader.renderPrompt('create-spec', {
             description,
             workspacePath: workspaceFolder.uri.fsPath,
-            specBasePath
+            specBasePath,
+            modularDesignEnabled: modularDesignEnabled.toString()
         });
 
         // Send to Claude and get the terminal
@@ -89,10 +98,19 @@ export class SpecManager {
 
         // Use the specialized subagent prompt
         const specBasePath = await this.getSpecBasePath();
+
+        // Check if modular design is enabled
+        const settings = await this.configManager.loadSettings();
+        const modularDesignConfig = this.configManager.getModularDesignConfig();
+        const modularDesignEnabled = modularDesignConfig.enabled;
+
+        this.outputChannel.appendLine(`[SpecManager] Modular design enabled: ${modularDesignEnabled}`);
+
         const prompt = this.promptLoader.renderPrompt('create-spec-with-agents', {
             description,
             workspacePath: workspaceFolder.uri.fsPath,
-            specBasePath
+            specBasePath,
+            modularDesignEnabled: modularDesignEnabled.toString()
         });
 
         // Send to Claude and get the terminal

@@ -1,4 +1,4 @@
-// Auto-generated from src/prompts/steering/delete-steering.md
+// Auto-generated from src\prompts\steering\delete-steering.md
 // DO NOT EDIT MANUALLY
 
 export const frontmatter = {
@@ -20,7 +20,7 @@ export const frontmatter = {
   }
 };
 
-export const content = "\nThe steering document \"{{documentName}}\" has been deleted from {{steeringPath}}.\n\nIf a project CLAUDE.md exists and contains a \"## Steering Documents\" section, please update it to remove the reference to this deleted document.\n";
+export const content = "\r\nThe steering document \"{{documentName}}\" has been deleted from {{steeringPath}}.\r\n\r\nIf a project CLAUDE.md exists and contains a \"## Steering Documents\" section, please update it to remove the reference to this deleted document.\r\n";
 
 export default {
   frontmatter,

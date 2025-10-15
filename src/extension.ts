@@ -16,6 +16,17 @@ import { UpdateChecker } from './utils/updateChecker';
 import { PermissionManager } from './features/permission/permissionManager';
 import { NotificationUtils } from './utils/notificationUtils';
 import { SpecTaskCodeLensProvider } from './providers/specTaskCodeLensProvider';
+import { DesignModuleCodeLensProvider } from './providers/designModuleCodeLensProvider';
+import {
+    handleGenerateAllModules,
+    handleGenerateSpecificModule,
+    handleApproveModule,
+    handleRejectModule,
+    handleRegenerateModule,
+    handleDeleteModule,
+    handleMigrateLegacyDesign,
+    handleAnalyzeReferences
+} from './features/spec/designModuleCommands';
 
 let claudeCodeProvider: ClaudeCodeProvider;
 let specManager: SpecManager;
@@ -32,6 +43,18 @@ export function getPermissionManager(): PermissionManager {
 export async function activate(context: vscode.ExtensionContext) {
     // Create output channel for debugging
     outputChannel = vscode.window.createOutputChannel('Kiro for Claude Code - Debug');
+
+    // Get extension version from package.json
+    const packageJson = context.extension.packageJSON;
+    const version = packageJson.version;
+    const displayName = packageJson.displayName || packageJson.name;
+
+    // Output banner with version info
+    outputChannel.appendLine('═'.repeat(60));
+    outputChannel.appendLine(`${displayName}`);
+    outputChannel.appendLine(`Version: ${version}`);
+    outputChannel.appendLine(`Activation Time: ${new Date().toLocaleString()}`);
+    outputChannel.appendLine('═'.repeat(60));
 
     // Initialize PromptLoader
     try {
@@ -77,6 +100,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Set managers
     specExplorer.setSpecManager(specManager);
+    specExplorer.setClaudeProvider(claudeCodeProvider);
     steeringExplorer.setSteeringManager(steeringManager);
 
     context.subscriptions.push(
@@ -138,23 +162,70 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 
     outputChannel.appendLine('CodeLens provider for spec tasks registered');
+
+    // Register CodeLens provider for design modules
+    const designModuleCodeLensProvider = new DesignModuleCodeLensProvider();
+
+    const designModuleSelector: vscode.DocumentSelector = [
+        {
+            language: 'markdown',
+            pattern: `**/${normalizedSpecDir}/*/design-*.md`,
+            scheme: 'file'
+        }
+    ];
+
+    const designModuleDisposable = vscode.languages.registerCodeLensProvider(
+        designModuleSelector,
+        designModuleCodeLensProvider
+    );
+
+    context.subscriptions.push(designModuleDisposable);
+
+    outputChannel.appendLine('CodeLens provider for design modules registered');
 }
 
 async function initializeDefaultSettings() {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
+        outputChannel.appendLine('[Settings Init] No workspace folder found');
         return;
     }
+
+    outputChannel.appendLine(`[Settings Init] Workspace folder: ${workspaceFolder.uri.fsPath}`);
 
     // Create .claude/settings directory if it doesn't exist
     const claudeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.claude');
     const settingsDir = vscode.Uri.joinPath(claudeDir, 'settings');
 
     try {
-        await vscode.workspace.fs.createDirectory(claudeDir);
-        await vscode.workspace.fs.createDirectory(settingsDir);
+        // Create .claude directory
+        try {
+            await vscode.workspace.fs.createDirectory(claudeDir);
+            outputChannel.appendLine('[Settings Init] Created .claude directory');
+        } catch (error: any) {
+            // Directory might already exist - check if it's actually a FileSystemError
+            if (error.code !== 'FileExists') {
+                outputChannel.appendLine(`[Settings Init] Error creating .claude directory: ${error}`);
+                throw error;
+            }
+            outputChannel.appendLine('[Settings Init] .claude directory already exists');
+        }
+
+        // Create settings directory
+        try {
+            await vscode.workspace.fs.createDirectory(settingsDir);
+            outputChannel.appendLine('[Settings Init] Created settings directory');
+        } catch (error: any) {
+            if (error.code !== 'FileExists') {
+                outputChannel.appendLine(`[Settings Init] Error creating settings directory: ${error}`);
+                throw error;
+            }
+            outputChannel.appendLine('[Settings Init] Settings directory already exists');
+        }
     } catch (error) {
-        // Directory might already exist
+        outputChannel.appendLine(`[Settings Init] Fatal error creating directories: ${error}`);
+        vscode.window.showErrorMessage(`Failed to create settings directories: ${error}`);
+        return;
     }
 
     // Create kfc-settings.json if it doesn't exist
@@ -163,15 +234,22 @@ async function initializeDefaultSettings() {
     try {
         // Check if file exists
         await vscode.workspace.fs.stat(settingsFile);
+        outputChannel.appendLine('[Settings Init] Settings file already exists');
     } catch (error) {
         // File doesn't exist, create it with default settings
-        const configManager = ConfigManager.getInstance();
-        const defaultSettings = configManager.getSettings();
+        try {
+            const configManager = ConfigManager.getInstance();
+            const defaultSettings = configManager.getSettings();
 
-        await vscode.workspace.fs.writeFile(
-            settingsFile,
-            Buffer.from(JSON.stringify(defaultSettings, null, 2))
-        );
+            await vscode.workspace.fs.writeFile(
+                settingsFile,
+                Buffer.from(JSON.stringify(defaultSettings, null, 2))
+            );
+            outputChannel.appendLine('[Settings Init] Created default settings file');
+        } catch (writeError) {
+            outputChannel.appendLine(`[Settings Init] Error creating settings file: ${writeError}`);
+            vscode.window.showErrorMessage(`Failed to create settings file: ${writeError}`);
+        }
     }
 }
 
@@ -290,6 +368,43 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             await specManager.navigateToDocument(specName, 'tasks');
         }),
 
+        // Design Module navigation
+        vscode.commands.registerCommand('kfc.spec.navigate.designModule', async (specName: string, moduleType: string) => {
+            const configManager = ConfigManager.getInstance();
+            const specBasePath = configManager.getPath('specs');
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+
+            if (!workspaceFolder) {
+                vscode.window.showErrorMessage('No workspace folder found');
+                return;
+            }
+
+            const modulePath = vscode.Uri.joinPath(
+                workspaceFolder.uri,
+                specBasePath,
+                specName,
+                `design-${moduleType}.md`
+            );
+
+            try {
+                // Check if file exists
+                await vscode.workspace.fs.stat(modulePath);
+                const document = await vscode.workspace.openTextDocument(modulePath);
+                await vscode.window.showTextDocument(document);
+            } catch (error) {
+                // File doesn't exist, ask if user wants to generate it
+                const choice = await vscode.window.showInformationMessage(
+                    `模块文件不存在，是否要生成该模块？`,
+                    '生成',
+                    '取消'
+                );
+
+                if (choice === '生成') {
+                    vscode.commands.executeCommand('kfc.spec.designModule.generateSpecific', specName, moduleType);
+                }
+            }
+        }),
+
         vscode.commands.registerCommand('kfc.spec.implTask', async (documentUri: vscode.Uri, lineNumber: number, taskDescription: string) => {
             outputChannel.appendLine(`[Task Execute] Line ${lineNumber + 1}: ${taskDescription}`);
 
@@ -309,6 +424,58 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             outputChannel.appendLine('[Manual Refresh] Refreshing spec explorer...');
             specExplorer.refresh();
         })
+    );
+
+    // Design Module commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'kfc.spec.designModule.generateAll',
+            handleGenerateAllModules(claudeCodeProvider, outputChannel, () => {
+                specExplorer.refresh();
+            })
+        ),
+        vscode.commands.registerCommand(
+            'kfc.spec.designModule.generateSpecific',
+            handleGenerateSpecificModule(claudeCodeProvider, outputChannel, () => {
+                specExplorer.refresh();
+            })
+        ),
+        vscode.commands.registerCommand(
+            'kfc.spec.designModule.approve',
+            handleApproveModule(claudeCodeProvider, outputChannel, () => {
+                specExplorer.refresh();
+            })
+        ),
+        vscode.commands.registerCommand(
+            'kfc.spec.designModule.reject',
+            handleRejectModule(claudeCodeProvider, outputChannel, () => {
+                specExplorer.refresh();
+            })
+        ),
+        vscode.commands.registerCommand(
+            'kfc.spec.designModule.regenerate',
+            handleRegenerateModule(claudeCodeProvider, outputChannel, () => {
+                specExplorer.refresh();
+            })
+        ),
+        vscode.commands.registerCommand(
+            'kfc.spec.designModule.delete',
+            handleDeleteModule(claudeCodeProvider, outputChannel, () => {
+                specExplorer.refresh();
+            })
+        ),
+        vscode.commands.registerCommand(
+            'kfc.spec.designModule.migrate',
+            handleMigrateLegacyDesign(claudeCodeProvider, outputChannel, () => {
+                specExplorer.refresh();
+            })
+        ),
+        vscode.commands.registerCommand(
+            'kfc.spec.designModule.analyzeReferences',
+            handleAnalyzeReferences(claudeCodeProvider, outputChannel, () => {
+                specExplorer.refresh();
+            })
+        )
     );
 
     // Steering commands

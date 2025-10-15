@@ -2,7 +2,7 @@
   "name": "kiro-for-cc",
   "displayName": "Kiro for Claude Code",
   "description": "Spec-driven development with Claude Code - inspired by Kiro",
-  "version": "0.2.9",
+  "version": "0.3.1",
   "publisher": "heisebaiyun",
   "icon": "icon.png",
   "repository": {
@@ -213,6 +213,59 @@
         "command": "kfc.spec.implTask",
         "title": "Implement Task",
         "category": "Kiro for CC"
+      },
+      {
+        "command": "kfc.spec.designModule.generateAll",
+        "title": "Generate All Design Modules",
+        "category": "Kiro for CC",
+        "icon": "$(layers)"
+      },
+      {
+        "command": "kfc.spec.designModule.generateSpecific",
+        "title": "Generate Specific Module",
+        "category": "Kiro for CC",
+        "icon": "$(file-add)"
+      },
+      {
+        "command": "kfc.spec.designModule.approve",
+        "title": "Approve Module",
+        "category": "Kiro for CC",
+        "icon": "$(check)"
+      },
+      {
+        "command": "kfc.spec.designModule.reject",
+        "title": "Reject Module",
+        "category": "Kiro for CC",
+        "icon": "$(close)"
+      },
+      {
+        "command": "kfc.spec.designModule.regenerate",
+        "title": "Regenerate Module",
+        "category": "Kiro for CC",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "kfc.spec.designModule.delete",
+        "title": "Delete Module",
+        "category": "Kiro for CC",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "kfc.spec.designModule.migrate",
+        "title": "Migrate to Modular Design",
+        "category": "Kiro for CC",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "kfc.spec.navigate.designModule",
+        "title": "Open Design Module",
+        "category": "Kiro for CC"
+      },
+      {
+        "command": "kfc.spec.designModule.analyzeReferences",
+        "title": "Analyze Cross References",
+        "category": "Kiro for CC",
+        "icon": "$(references)"
       }
     ],
     "menus": {
@@ -266,6 +319,11 @@
           "command": "kfc.agents.refresh",
           "when": "view == kfc.views.agentsExplorer",
           "group": "navigation"
+        },
+        {
+          "command": "kfc.spec.designModule.generateAll",
+          "when": "view == kfc.views.specExplorer && config.kfc.features.modularDesign.enabled",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
@@ -283,6 +341,36 @@
           "command": "kfc.steering.delete",
           "when": "view == kfc.views.steeringExplorer && viewItem == steering-document",
           "group": "7_modification"
+        },
+        {
+          "command": "kfc.spec.designModule.migrate",
+          "when": "view == kfc.views.specExplorer && viewItem == spec",
+          "group": "2_workspace"
+        },
+        {
+          "command": "kfc.spec.designModule.approve",
+          "when": "view == kfc.views.specExplorer && viewItem =~ /^spec-design-module-.*/",
+          "group": "inline@1"
+        },
+        {
+          "command": "kfc.spec.designModule.reject",
+          "when": "view == kfc.views.specExplorer && viewItem =~ /^spec-design-module-.*/",
+          "group": "inline@2"
+        },
+        {
+          "command": "kfc.spec.designModule.regenerate",
+          "when": "view == kfc.views.specExplorer && viewItem =~ /^spec-design-module-.*/",
+          "group": "3_modify@1"
+        },
+        {
+          "command": "kfc.spec.designModule.delete",
+          "when": "view == kfc.views.specExplorer && viewItem =~ /^spec-design-module-.*/",
+          "group": "7_modification"
+        },
+        {
+          "command": "kfc.spec.designModule.analyzeReferences",
+          "when": "view == kfc.views.specExplorer && viewItem == spec-design-modules",
+          "group": "5_cutcopypaste"
         }
       ],
       "commandPalette": [
@@ -345,6 +433,53 @@
           "type": "boolean",
           "default": false,
           "description": "Show Settings view"
+        },
+        "kfc.features.modularDesign.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "启用模块化设计结构功能"
+        },
+        "kfc.features.modularDesign.defaultModules": {
+          "type": "array",
+          "default": [
+            "frontend",
+            "server-api",
+            "server-logic",
+            "server-database",
+            "testing"
+          ],
+          "description": "默认生成的设计模块类型",
+          "items": {
+            "type": "string",
+            "enum": [
+              "frontend",
+              "mobile",
+              "server-api",
+              "server-logic",
+              "server-database",
+              "testing"
+            ]
+          }
+        },
+        "kfc.features.modularDesign.autoDetectModules": {
+          "type": "boolean",
+          "default": true,
+          "description": "根据需求自动检测适用的设计模块"
+        },
+        "kfc.features.modularDesign.parallelGeneration": {
+          "type": "boolean",
+          "default": true,
+          "description": "并行生成多个设计模块以提高速度"
+        },
+        "kfc.features.modularDesign.cacheEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "启用模块信息缓存"
+        },
+        "kfc.features.modularDesign.showMigrationPrompt": {
+          "type": "boolean",
+          "default": true,
+          "description": "检测到旧设计文档时显示迁移提示"
         }
       }
     }

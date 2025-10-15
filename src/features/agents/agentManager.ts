@@ -37,6 +37,21 @@ export class AgentManager {
     }
 
     /**
+     * Get the resource path (support both development and production)
+     */
+    private getResourcePath(relativePath: string): string {
+        // Try dist/resources first (production/packaged)
+        const distPath = path.join(this.extensionPath, 'dist/resources', relativePath);
+        if (fs.existsSync(distPath)) {
+            return distPath;
+        }
+
+        // Fall back to src/resources (development mode)
+        const srcPath = path.join(this.extensionPath, 'src/resources', relativePath);
+        return srcPath;
+    }
+
+    /**
      * Initialize built-in agents (copy if not exist on startup)
      */
     async initializeBuiltInAgents(): Promise<void> {
@@ -46,29 +61,36 @@ export class AgentManager {
         }
 
         const targetDir = path.join(this.workspaceRoot, '.claude/agents/kfc');
-        
+
         try {
             // Ensure target directory exists
             await vscode.workspace.fs.createDirectory(vscode.Uri.file(targetDir));
-            
+            this.outputChannel.appendLine(`[AgentManager] Target directory created: ${targetDir}`);
+
             // Copy each built-in agent (always overwrite to ensure latest version)
             for (const agentName of this.BUILT_IN_AGENTS) {
-                const sourcePath = path.join(this.extensionPath, 'dist/resources/agents', `${agentName}.md`);
+                const sourcePath = this.getResourcePath(`agents/${agentName}.md`);
                 const targetPath = path.join(targetDir, `${agentName}.md`);
-                
+
                 try {
+                    // Check if source file exists
+                    if (!fs.existsSync(sourcePath)) {
+                        this.outputChannel.appendLine(`[AgentManager] Source file not found: ${sourcePath}`);
+                        continue;
+                    }
+
                     const sourceUri = vscode.Uri.file(sourcePath);
                     const targetUri = vscode.Uri.file(targetPath);
                     await vscode.workspace.fs.copy(sourceUri, targetUri, { overwrite: true });
-                    this.outputChannel.appendLine(`[AgentManager] Updated agent ${agentName}`);
+                    this.outputChannel.appendLine(`[AgentManager] Updated agent ${agentName} from ${sourcePath}`);
                 } catch (error) {
                     this.outputChannel.appendLine(`[AgentManager] Failed to copy agent ${agentName}: ${error}`);
                 }
             }
-            
+
             // Also copy system prompt if it doesn't exist
             await this.initializeSystemPrompt();
-            
+
         } catch (error) {
             this.outputChannel.appendLine(`[AgentManager] Failed to initialize agents: ${error}`);
         }
@@ -83,16 +105,23 @@ export class AgentManager {
         }
 
         const systemPromptDir = path.join(this.workspaceRoot, '.claude/system-prompts');
-        const sourcePath = path.join(this.extensionPath, 'dist/resources/prompts', 'spec-workflow-starter.md');
+        const sourcePath = this.getResourcePath('prompts/spec-workflow-starter.md');
         const targetPath = path.join(systemPromptDir, 'spec-workflow-starter.md');
 
         try {
+            // Check if source file exists
+            if (!fs.existsSync(sourcePath)) {
+                this.outputChannel.appendLine(`[AgentManager] System prompt source file not found: ${sourcePath}`);
+                return;
+            }
+
             // Ensure directory exists
             await vscode.workspace.fs.createDirectory(vscode.Uri.file(systemPromptDir));
-            
+            this.outputChannel.appendLine(`[AgentManager] System prompt directory created: ${systemPromptDir}`);
+
             // Always overwrite to ensure latest version
             await vscode.workspace.fs.copy(vscode.Uri.file(sourcePath), vscode.Uri.file(targetPath), { overwrite: true });
-            this.outputChannel.appendLine('[AgentManager] Updated system prompt');
+            this.outputChannel.appendLine(`[AgentManager] Updated system prompt from ${sourcePath}`);
         } catch (error) {
             this.outputChannel.appendLine(`[AgentManager] Failed to initialize system prompt: ${error}`);
         }
@@ -132,11 +161,15 @@ export class AgentManager {
      */
     private async getAgentsFromDirectory(dirPath: string, type: 'project' | 'user', excludeKfc: boolean = false): Promise<AgentInfo[]> {
         const agents: AgentInfo[] = [];
+        const stats = { total: 0, success: 0, failed: 0 };
 
         try {
             this.outputChannel.appendLine(`[AgentManager] Reading agents from directory: ${dirPath}`);
-            await this.readAgentsRecursively(dirPath, type, agents, excludeKfc);
-            this.outputChannel.appendLine(`[AgentManager] Total agents found in ${dirPath}: ${agents.length}`);
+            await this.readAgentsRecursively(dirPath, type, agents, excludeKfc, stats);
+            this.outputChannel.appendLine(`[AgentManager] Summary for ${dirPath}:`);
+            this.outputChannel.appendLine(`  - Total agent files found: ${stats.total}`);
+            this.outputChannel.appendLine(`  - Successfully parsed: ${stats.success}`);
+            this.outputChannel.appendLine(`  - Failed to parse: ${stats.failed}`);
         } catch (error) {
             this.outputChannel.appendLine(`[AgentManager] Failed to read agents from ${dirPath}: ${error}`);
         }
@@ -147,32 +180,47 @@ export class AgentManager {
     /**
      * Recursively read agents from directory and subdirectories
      */
-    private async readAgentsRecursively(dirPath: string, type: 'project' | 'user', agents: AgentInfo[], excludeKfc: boolean = false): Promise<void> {
+    private async readAgentsRecursively(
+        dirPath: string,
+        type: 'project' | 'user',
+        agents: AgentInfo[],
+        excludeKfc: boolean = false,
+        stats?: { total: number; success: number; failed: number }
+    ): Promise<void> {
         try {
             const entries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(dirPath));
-            
+
             for (const [fileName, fileType] of entries) {
                 const fullPath = path.join(dirPath, fileName);
-                
+
                 // Skip kfc directory if excludeKfc is true
                 if (excludeKfc && fileName === 'kfc' && fileType === vscode.FileType.Directory) {
                     this.outputChannel.appendLine(`[AgentManager] Skipping kfc directory (built-in agents)`);
                     continue;
                 }
-                
+
                 if (fileType === vscode.FileType.File && fileName.endsWith('.md')) {
+                    if (stats) {
+                        stats.total++;
+                    }
                     this.outputChannel.appendLine(`[AgentManager] Processing agent file: ${fileName}`);
                     const agentInfo = await this.parseAgentFile(fullPath, type);
                     if (agentInfo) {
                         agents.push(agentInfo);
-                        this.outputChannel.appendLine(`[AgentManager] Added agent: ${agentInfo.name}`);
+                        if (stats) {
+                            stats.success++;
+                        }
+                        this.outputChannel.appendLine(`[AgentManager] ✓ Added agent: ${agentInfo.name}`);
                     } else {
-                        this.outputChannel.appendLine(`[AgentManager] Failed to parse agent: ${fileName}`);
+                        if (stats) {
+                            stats.failed++;
+                        }
+                        this.outputChannel.appendLine(`[AgentManager] ✗ Failed to parse agent: ${fileName}`);
                     }
                 } else if (fileType === vscode.FileType.Directory) {
                     // Recursively read subdirectories
                     this.outputChannel.appendLine(`[AgentManager] Entering subdirectory: ${fileName}`);
-                    await this.readAgentsRecursively(fullPath, type, agents, excludeKfc);
+                    await this.readAgentsRecursively(fullPath, type, agents, excludeKfc, stats);
                 }
             }
         } catch (error) {
@@ -197,20 +245,23 @@ export class AgentManager {
 
             let frontmatter: any;
             try {
-                // Debug: log the frontmatter content for spec-system-prompt-loader
-                if (path.basename(filePath) === 'spec-system-prompt-loader.md') {
-                    this.outputChannel.appendLine(`[AgentManager] Frontmatter content for spec-system-prompt-loader:`);
-                    this.outputChannel.appendLine(frontmatterMatch[1]);
-                }
-                
                 frontmatter = yaml.load(frontmatterMatch[1]) as any;
                 this.outputChannel.appendLine(`[AgentManager] Successfully parsed YAML for: ${path.basename(filePath)}`);
-            } catch (yamlError) {
-                this.outputChannel.appendLine(`[AgentManager] YAML parse error in ${path.basename(filePath)}: ${yamlError}`);
-                if (path.basename(filePath) === 'spec-system-prompt-loader.md') {
-                    this.outputChannel.appendLine(`[AgentManager] Raw frontmatter that failed:`);
-                    this.outputChannel.appendLine(frontmatterMatch[1]);
-                }
+            } catch (yamlError: any) {
+                const fileName = path.basename(filePath);
+                this.outputChannel.appendLine(`[AgentManager] YAML parse error in ${fileName}:`);
+                this.outputChannel.appendLine(`  ${yamlError.message || yamlError}`);
+                this.outputChannel.appendLine(`  File location: ${filePath}`);
+                this.outputChannel.appendLine(`  Hint: Check the YAML frontmatter (between --- markers) for proper indentation and syntax`);
+
+                // Show first few lines of problematic frontmatter to help debug
+                const frontmatterLines = frontmatterMatch[1].split('\n');
+                const previewLines = frontmatterLines.slice(0, 5);
+                this.outputChannel.appendLine(`  First few lines of frontmatter:`);
+                previewLines.forEach((line, idx) => {
+                    this.outputChannel.appendLine(`    ${idx + 1}: ${line.substring(0, 80)}${line.length > 80 ? '...' : ''}`);
+                });
+
                 return null;
             }
             

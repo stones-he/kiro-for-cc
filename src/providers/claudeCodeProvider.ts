@@ -34,27 +34,22 @@ export class ClaudeCodeProvider {
         const tempFile = path.join(tempDir, `${prefix}-${Date.now()}.md`);
         await fs.promises.writeFile(tempFile, content);
 
-        return this.convertPathIfWSL(tempFile);
+        return tempFile;
     }
 
-
-
     /**
-     * Convert Windows path to WSL path if needed
-     * Example: C:\Users\username\file.txt -> /mnt/c/Users/username/file.txt
+     * Build the command to read the prompt file based on platform and shell
      */
-    private convertPathIfWSL(filePath: string): string {
-        // Check if running on Windows and path is a Windows path
-        if (process.platform === 'win32' && filePath.match(/^[A-Za-z]:\\/)) {
-            // Replace backslashes with forward slashes
-            let wslPath = filePath.replace(/\\/g, '/');
-            // Convert drive letter to WSL format (C: -> /mnt/c)
-            wslPath = wslPath.replace(/^([A-Za-z]):/, (_match, drive) => `/mnt/${drive.toLowerCase()}`);
-            return wslPath;
+    private buildClaudeCommand(promptFilePath: string, permissionMode: string = 'bypassPermissions'): string {
+        if (process.platform === 'win32') {
+            // On Windows, use PowerShell-compatible syntax
+            // Escape backslashes and use Get-Content
+            const escapedPath = promptFilePath.replace(/\\/g, '\\\\');
+            return `claude --permission-mode ${permissionMode} (Get-Content -Raw "${escapedPath}")`;
+        } else {
+            // On Unix-like systems (Linux, macOS), use standard shell syntax
+            return `claude --permission-mode ${permissionMode} "$(cat "${promptFilePath}")"`;
         }
-
-        // Return original path if not on Windows or not a Windows path
-        return filePath;
     }
 
     /**
@@ -78,8 +73,10 @@ export class ClaudeCodeProvider {
             // Create temp file with the prompt
             const promptFilePath = await this.createTempFile(prompt, 'prompt');
 
-            // Build the command - use command substitution instead of input redirection
-            let command = `claude --permission-mode bypassPermissions "$(cat "${promptFilePath}")"`;
+            // Build the command based on platform
+            const command = this.buildClaudeCommand(promptFilePath);
+
+            this.outputChannel.appendLine(`[ClaudeCodeProvider] Generated command: ${command}`);
 
             // Create a new terminal in the editor area (right side)
             const terminal = vscode.window.createTerminal({
@@ -169,8 +166,10 @@ export class ClaudeCodeProvider {
         // Create temp file with the prompt
         const promptFilePath = await this.createTempFile(prompt, 'background-prompt');
 
-        // Build command using command substitution instead of file redirection
-        let commandLine = `claude --permission-mode bypassPermissions "$(cat "${promptFilePath}")"`;
+        // Build command based on platform
+        const commandLine = this.buildClaudeCommand(promptFilePath);
+
+        this.outputChannel.appendLine(`[ClaudeCodeProvider] Headless command: ${commandLine}`);
 
         // Create hidden terminal for background execution
         const terminal = vscode.window.createTerminal({

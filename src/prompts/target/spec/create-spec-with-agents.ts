@@ -4,7 +4,7 @@
 export const frontmatter = {
   "id": "create-spec-with-agents",
   "name": "Create Spec with Subagents",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "Create a spec using specialized subagents for parallel processing",
   "variables": {
     "description": {
@@ -25,7 +25,7 @@ export const frontmatter = {
   }
 };
 
-export const content = "<system_prompt>\r\nPlease load and follow the spec workflow system prompt from:\r\n.claude/system-prompts/spec-workflow-starter.md\r\n\r\nThis system prompt contains the complete workflow definition, constraints, and rules for spec-driven development.\r\n</system_prompt>\r\n\r\n<user_input>\r\nI want to create a new feature using the spec workflow with specialized subagents.\r\n\r\nFeature Description: {{description}}\r\n\r\nWorkspace path: {{workspacePath}}\r\nSpec base path: {{specBasePath}}\r\n\r\nPlease follow the spec workflow system prompt to guide me through the requirements, design, and task planning phases. Make sure to:\r\n1. Ask for my approval after completing each phase (requirements, design, tasks)\r\n2. Do not proceed to the next phase until I explicitly approve\r\n3. Ask me how many parallel agents to use for each phase\r\n4. Use the tree-based judge evaluation when multiple agents are used\r\n\r\nYou have full control over the naming and file creation.\r\n</user_input>\r\n";
+export const content = "<user_input>\r\nLAUNCH A SPEC DEVELOPMENT WORKFLOW\r\n\r\nCreate a requirements document for a new feature\r\n\r\nFeature Description: {{description}}\r\n\r\nWorkspace path: {{workspacePath}}\r\nSpec base path: {{specBasePath}}\r\n\r\nYou have full control over the naming and file creation.\r\n</user_input>\r\n";
 
 export default {
   frontmatter,

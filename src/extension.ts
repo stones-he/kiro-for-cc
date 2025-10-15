@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as os from 'os';
 import { ClaudeCodeProvider } from './providers/claudeCodeProvider';
 import { SpecManager } from './features/spec/specManager';
 import { SteeringManager } from './features/steering/steeringManager';
@@ -641,7 +642,7 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
         vscode.commands.registerCommand('kfc.permission.check', async () => {
             // 使用新的 PermissionManager 检查真实的权限状态
             const hasPermission = await permissionManager.checkPermission();
-            const configPath = require('os').homedir() + '/.claude.json';
+            const configPath = os.homedir() + '/.claude.json';
 
             vscode.window.showInformationMessage(
                 `Claude Code Permission Status: ${hasPermission ? '✅ Granted' : '❌ Not Granted'}`
@@ -690,7 +691,7 @@ function setupFileWatchers(
 
     // Watch for changes in Claude settings
     const claudeSettingsWatcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(process.env.HOME || '', '.claude/settings.json')
+        new vscode.RelativePattern(os.homedir(), '.claude/settings.json')
     );
 
     claudeSettingsWatcher.onDidChange(() => {
@@ -702,7 +703,7 @@ function setupFileWatchers(
 
     // Watch for changes in CLAUDE.md files
     const globalClaudeMdWatcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(process.env.HOME || '', '.claude/CLAUDE.md')
+        new vscode.RelativePattern(os.homedir(), '.claude/CLAUDE.md')
     );
     const projectClaudeMdWatcher = vscode.workspace.createFileSystemWatcher('**/CLAUDE.md');
 

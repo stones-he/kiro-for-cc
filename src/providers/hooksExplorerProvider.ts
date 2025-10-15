@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 
 export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<HookItem | undefined | null | void> = new vscode.EventEmitter<HookItem | undefined | null | void>();
@@ -178,7 +179,7 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
         
         // Then check global ~/.claude/settings.json
         try {
-            const claudeConfigPath = path.join(process.env.HOME || '', '.claude', 'settings.json');
+            const claudeConfigPath = path.join(os.homedir(), '.claude', 'settings.json');
             if (fs.existsSync(claudeConfigPath)) {
                 const config = JSON.parse(fs.readFileSync(claudeConfigPath, 'utf8'));
                 if (config.hooks) {

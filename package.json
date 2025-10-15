@@ -378,6 +378,9 @@
           "command": "kfc.spec.create"
         },
         {
+          "command": "kfc.spec.createWithAgents"
+        },
+        {
           "command": "kfc.steering.create",
           "when": "workspaceFolderCount > 0"
         },

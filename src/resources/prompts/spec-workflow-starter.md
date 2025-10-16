@@ -53,6 +53,22 @@ Don't focus on code exploration in this phase. Instead, just focus on writing re
 After the user approves the Requirements, you should develop a comprehensive design document based on the feature requirements, conducting necessary research during the design process.
 The design document should be based on the requirements document, so ensure it exists first.
 
+**Modular Design Support:**
+
+If the user has specified that modular design is enabled:
+- The model MUST create MULTIPLE separate design module files instead of a single design.md file
+- The model MUST analyze the requirements to determine which modules are needed:
+  - **design-frontend.md** - Frontend/web UI design (IF requirements mention: web UI, frontend, React, Vue, Angular, browser, components)
+  - **design-mobile.md** - Mobile app design (ONLY IF requirements explicitly mention: mobile, iOS, Android, app, React Native, Flutter)
+  - **design-server-api.md** - REST/GraphQL API endpoint design (IF requirements mention: API, endpoints, REST, GraphQL, HTTP, backend)
+  - **design-server-logic.md** - Business logic, services (IF requirements mention: business logic, services, processing, algorithms, workflow)
+  - **design-server-database.md** - Database models, schemas (IF requirements mention: database, data storage, models, schema, SQL, NoSQL)
+  - **design-testing.md** - Test strategy (ALWAYS create this for all features)
+- The model MUST use the Write tool to create each applicable module file at: {spec_base_path}/{feature_name}/design-{module-name}.md
+- Each module file MUST include cross-references to related modules
+
+Otherwise, create a single design.md file as usual.
+
 ### 3. Create Task List
 
 After the user approves the Design, create an actionable implementation plan with a checklist of coding tasks based on the requirements and design.

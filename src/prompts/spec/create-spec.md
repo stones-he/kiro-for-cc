@@ -134,22 +134,67 @@ The design document should be based on the requirements document, so ensure it e
 The modular design feature setting is: `{{modularDesignEnabled}}`
 
 **IF modularDesignEnabled is "true":**
-- The model MUST use the ModularDesignManager to generate modular design files instead of a single design.md file
-- The model MUST read the requirements document first
-- The model MUST call the modular design generation using VSCode commands or by directly interacting with the file system to create:
-  - design-frontend.md (for frontend/web design)
-  - design-mobile.md (for mobile design, if applicable)
-  - design-server-api.md (for API design)
-  - design-server-logic.md (for business logic)
-  - design-server-database.md (for database models)
-  - design-testing.md (for test strategies)
-- The model MUST only generate modules that are relevant to the requirements (e.g., skip mobile design if not needed)
-- The model MUST ensure each module focuses on its specific domain with appropriate depth
-- The model MUST create cross-references between related modules
+- The model MUST create MULTIPLE separate design module files instead of a single design.md file
+- The model MUST read the requirements document first to determine which modules are needed
+- The model MUST analyze the requirements to determine which of the following modules are applicable:
+  - **design-frontend.md** - Frontend/web UI design (React, Vue, etc.)
+  - **design-mobile.md** - Mobile app design (iOS, Android, React Native, Flutter) - ONLY if mobile is mentioned in requirements
+  - **design-server-api.md** - REST/GraphQL API endpoint design
+  - **design-server-logic.md** - Business logic, services, data processing
+  - **design-server-database.md** - Database models, schemas, relationships
+  - **design-testing.md** - Test strategy, unit tests, integration tests, e2e tests
+
+**Module Selection Rules:**
+- The model MUST create design-frontend.md IF requirements mention: web UI, frontend, React, Vue, Angular, browser, user interface, components
+- The model MUST create design-mobile.md ONLY IF requirements explicitly mention: mobile, iOS, Android, app, React Native, Flutter
+- The model MUST create design-server-api.md IF requirements mention: API, endpoints, REST, GraphQL, HTTP, requests, backend
+- The model MUST create design-server-logic.md IF requirements mention: business logic, services, processing, algorithms, workflow
+- The model MUST create design-server-database.md IF requirements mention: database, data storage, models, schema, SQL, NoSQL
+- The model MUST ALWAYS create design-testing.md for all features
+
+**Creating Module Files:**
+- The model MUST use the Write tool to create each applicable module file at: {{specBasePath}}/{feature_name}/design-{module-name}.md
+- The model MUST create files sequentially or in parallel using multiple Write tool calls
+- Each module file MUST follow this structure:
+
+```markdown
+# {Module Type} Design
+
+## Overview
+[Brief overview of this aspect of the design]
+
+## Architecture
+[Architectural decisions specific to this domain]
+
+## Components/Endpoints/Models
+[Detailed specifications for this module]
+
+## Integration Points
+[How this module integrates with other modules - reference other design-*.md files]
+
+## Implementation Notes
+[Technical details and considerations]
+```
+
+**Module Content Requirements:**
+- design-frontend.md MUST include: Component hierarchy, state management, routing, UI/UX patterns, API integration
+- design-mobile.md MUST include: Platform considerations (iOS/Android), navigation, offline support, native features
+- design-server-api.md MUST include: Endpoint definitions (method, path, request/response), authentication, error handling
+- design-server-logic.md MUST include: Service layer design, business rules, data flow, external integrations
+- design-server-database.md MUST include: Entity models, relationships, indexes, migration strategy, data consistency
+- design-testing.md MUST include: Unit test strategy, integration test plan, e2e scenarios, test frameworks
+
+**Cross-Module References:**
+- Each module MUST reference related modules where appropriate
+- Example: design-frontend.md should reference specific endpoints from design-server-api.md
+- Example: design-server-logic.md should reference models from design-server-database.md
+- Use format: "See [API Design](./design-server-api.md#endpoint-name) for endpoint details"
+
 - After generating all applicable design modules, the model MUST:
   1. Use TodoWrite to mark the "Design Document" task as completed
   2. Create a new pending task "Review Design Modules"
-  3. Simply ask the user: "I've generated the design modules. Do they look good? If so, we can move on to the implementation plan."
+  3. List which modules were created
+  4. Simply ask the user: "I've generated the design modules. Do they look good? If so, we can move on to the implementation plan."
 
 **IF modularDesignEnabled is "false" OR NOT SET:**
 - The model MUST create a single '{{specBasePath}}/{feature_name}/design.md' file if it doesn't already exist
